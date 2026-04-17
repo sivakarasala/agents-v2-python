@@ -6,6 +6,7 @@ def test_unknown_tool():
     assert "Unknown tool" in result
 
 
-def test_execute_date_time():
-    result = execute_tool("get_date_time", {})
-    assert len(result) > 0
+def test_execute_read_file(tmp_path):
+    f = tmp_path / "x.txt"
+    f.write_text("hello")
+    assert execute_tool("read_file", {"path": str(f)}) == "hello"
