@@ -34,28 +34,65 @@ def run_agent(
         {"role": "user", "content": user_message},
     ]
 
-    response = _get_client().responses.create(
-        model=MODEL_NAME,
-        instructions=SYSTEM_PROMPT,
-        input=input_items,
-        tools=ALL_TOOLS if ALL_TOOLS else None,
-    )
+    full_response = ""
 
-    full_response = response.output_text or ""
-    callbacks.on_token(full_response)
+    while True:
+        stream = _get_client().responses.create(
+            model=MODEL_NAME,
+            instructions=SYSTEM_PROMPT,
+            input=input_items,
+            tools=ALL_TOOLS if ALL_TOOLS else None,
+            stream=True,
+        )
 
-    for item in response.output:
-        item_dict = item.model_dump(exclude_none=True)
-        input_items.append(item_dict)
+        final_response = None
+        current_text = ""
 
-        if item_dict.get("type") == "function_call":
-            args = json.loads(item_dict.get("arguments") or "{}")
-            callbacks.on_tool_call_start(item_dict["name"], args)
-            result = execute_tool(item_dict["name"], args)
-            callbacks.on_tool_call_end(item_dict["name"], result)
+        for event in stream:
+            event_type = getattr(event, "type", None)
+
+            if event_type == "response.output_text.delta":
+                delta = getattr(event, "delta", "")
+                if delta:
+                    current_text += delta
+                    callbacks.on_token(delta)
+
+            elif event_type == "response.completed":
+                final_response = getattr(event, "response", None)
+
+        full_response += current_text
+
+        if final_response is None:
+            break
+
+        function_calls: list[ToolCallInfo] = []
+
+        for item in final_response.output:
+            item_dict = item.model_dump(exclude_none=True)
+            input_items.append(item_dict)
+
+            if item_dict.get("type") == "function_call":
+                try:
+                    args = json.loads(item_dict.get("arguments") or "{}")
+                except json.JSONDecodeError:
+                    args = {}
+                function_calls.append(ToolCallInfo(
+                    tool_call_id=item_dict["call_id"],
+                    tool_name=item_dict["name"],
+                    args=args,
+                ))
+
+        if not function_calls:
+            break
+
+        for tc in function_calls:
+            callbacks.on_tool_call_start(tc.tool_name, tc.args)
+            result = execute_tool(tc.tool_name, tc.args)
+            callbacks.on_tool_call_end(tc.tool_name, result)
+
             input_items.append({
                 "type": "function_call_output",
-                "call_id": item_dict["call_id"],
+                "call_id": tc.tool_call_id,
                 "output": result,
             })
 
