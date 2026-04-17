@@ -1,0 +1,28 @@
+[project]
+name = "agi"
+version = "1.0.0"
+description = "A Python CLI AI agent built from scratch — Python port of agents-v2"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1.82.0",
+    "pydantic>=2.11.0",
+    "rich>=14.0.0",
+    "prompt-toolkit>=3.0.50",
+    "python-dotenv>=1.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[project.scripts]
+agi = "src.main:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["src*", "evals*"]
