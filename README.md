@@ -2,6 +2,8 @@
 
 A Python CLI AI agent built from scratch. Python port of [agents-v2](https://github.com/sivakarasala/agents-v2) (TypeScript), built as the companion code repo for the [Building AI Agents](https://sivakarasala.github.io/building-ai-agents/) book.
 
+<a href="https://sivakarasala.github.io/agents-v2-python/" target="_blank">📖 Course Notes (GitHub Pages)</a>
+
 ## What it is
 
 A real, working AI agent — not a wrapper around someone else's framework. It has:
