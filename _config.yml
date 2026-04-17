@@ -1,8 +1,6 @@
 title: "Build an AI Agent from Scratch (Python)"
 description: "Course notes for building a general-purpose AI agent from first principles in Python"
-remote_theme: pages-themes/hacker@v0.2.0
-plugins:
-  - jekyll-remote-theme
+theme: jekyll-theme-hacker
 
 markdown: kramdown
 highlighter: rouge
