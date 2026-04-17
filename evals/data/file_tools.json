@@ -1,0 +1,192 @@
+[
+  {
+    "data": {
+      "prompt": "Read the contents of package.json",
+      "tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ]
+    },
+    "target": {
+      "expected_tools": [
+        "read_file"
+      ],
+      "category": "golden"
+    },
+    "metadata": {
+      "description": "Direct file read request - should use readFile"
+    }
+  },
+  {
+    "data": {
+      "prompt": "Show me all the files in the src directory",
+      "tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ]
+    },
+    "target": {
+      "expected_tools": [
+        "list_files"
+      ],
+      "category": "golden"
+    },
+    "metadata": {
+      "description": "Directory listing request - should use listFiles"
+    }
+  },
+  {
+    "data": {
+      "prompt": "Create a new file called hello.txt with the content 'Hello World'",
+      "tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ]
+    },
+    "target": {
+      "expected_tools": [
+        "write_file"
+      ],
+      "category": "golden"
+    },
+    "metadata": {
+      "description": "File creation request - should use writeFile"
+    }
+  },
+  {
+    "data": {
+      "prompt": "Remove the old backup.txt file",
+      "tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ]
+    },
+    "target": {
+      "expected_tools": [
+        "delete_file"
+      ],
+      "category": "golden"
+    },
+    "metadata": {
+      "description": "File deletion request - should use deleteFile"
+    }
+  },
+  {
+    "data": {
+      "prompt": "What's in this project? Show me around.",
+      "tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ]
+    },
+    "target": {
+      "expected_tools": [
+        "list_files"
+      ],
+      "category": "secondary"
+    },
+    "metadata": {
+      "description": "Ambiguous exploration request - likely uses listFiles"
+    }
+  },
+  {
+    "data": {
+      "prompt": "Help me understand the codebase structure",
+      "tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ]
+    },
+    "target": {
+      "expected_tools": [
+        "list_files",
+        "read_file"
+      ],
+      "category": "secondary"
+    },
+    "metadata": {
+      "description": "Exploration request - might use listFiles and/or readFile"
+    }
+  },
+  {
+    "data": {
+      "prompt": "What is the capital of France?",
+      "tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ]
+    },
+    "target": {
+      "forbidden_tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ],
+      "category": "negative"
+    },
+    "metadata": {
+      "description": "General knowledge question - should NOT use any file tools"
+    }
+  },
+  {
+    "data": {
+      "prompt": "Tell me a joke about programming",
+      "tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ]
+    },
+    "target": {
+      "forbidden_tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ],
+      "category": "negative"
+    },
+    "metadata": {
+      "description": "Entertainment request - should NOT use any file tools"
+    }
+  },
+  {
+    "data": {
+      "prompt": "Calculate 25 * 17",
+      "tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ]
+    },
+    "target": {
+      "forbidden_tools": [
+        "read_file",
+        "write_file",
+        "list_files",
+        "delete_file"
+      ],
+      "category": "negative"
+    },
+    "metadata": {
+      "description": "Math calculation - should NOT use any file tools"
+    }
+  }
+]
