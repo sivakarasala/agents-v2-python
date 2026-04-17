@@ -1,3 +1,5 @@
+import asyncio
+import inspect
 import json
 from typing import Any
 from openai import OpenAI
@@ -35,7 +37,16 @@ def run_agent(
     conversation_history: list[dict[str, Any]],
     callbacks: AgentCallbacks,
 ) -> list[dict[str, Any]]:
-    """Run the agent loop using the OpenAI Responses API."""
+    """Run the agent loop using the OpenAI Responses API.
+
+    Conversation history is a list of Responses API "input items":
+      - {"role": "user"|"assistant", "content": "..."}
+      - {"type": "function_call", "call_id": "...", "name": "...", "arguments": "..."}
+      - {"type": "function_call_output", "call_id": "...", "output": "..."}
+      - provider-managed items like {"type": "web_search_call", ...} kept verbatim
+
+    The system prompt is sent via the `instructions` parameter, not as a message.
+    """
     model_limits = get_model_limits(MODEL_NAME)
 
     # Compact if we're over the context budget
@@ -82,6 +93,8 @@ def run_agent(
             stream=True,
         )
 
+        # Stream text deltas to the UI; capture the final response object on
+        # `response.completed` so we can read its full output items.
         final_response = None
         current_text = ""
 
@@ -100,8 +113,12 @@ def run_agent(
         full_response += current_text
 
         if final_response is None:
+            # Stream ended without a completed event — nothing more to do
             break
 
+        # Walk the output items: append everything (assistant text, reasoning,
+        # web_search_call, function_call) to history so the next turn has full
+        # context, and collect any function_call items we need to execute.
         function_calls: list[ToolCallInfo] = []
 
         for item in final_response.output:
@@ -119,11 +136,32 @@ def run_agent(
                     args=args,
                 ))
 
+        # No function calls → the model gave a final answer; we're done
         if not function_calls:
             break
 
         for tc in function_calls:
             callbacks.on_tool_call_start(tc.tool_name, tc.args)
+
+        # Execute each function call (with optional approval) and append the
+        # corresponding function_call_output item back into the input.
+        rejected = False
+        for tc in function_calls:
+            approval = callbacks.on_tool_approval(tc.tool_name, tc.args)
+            if inspect.isawaitable(approval):
+                approved = asyncio.run(approval)
+            else:
+                approved = approval
+
+            if not approved:
+                input_items.append({
+                    "type": "function_call_output",
+                    "call_id": tc.tool_call_id,
+                    "output": "User rejected this tool call.",
+                })
+                rejected = True
+                break
+
             result = execute_tool(tc.tool_name, tc.args)
             callbacks.on_tool_call_end(tc.tool_name, result)
 
@@ -134,6 +172,9 @@ def run_agent(
             })
 
             report_token_usage()
+
+        if rejected:
+            break
 
     callbacks.on_complete(full_response)
     return input_items
