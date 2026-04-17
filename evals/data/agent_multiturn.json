@@ -1,0 +1,134 @@
+[
+  {
+    "data": {
+      "prompt": "Read package.json and tell me the project name",
+      "mock_tools": {
+        "read_file": {
+          "description": "Read the contents of a file at the specified path",
+          "parameters": {
+            "path": "string"
+          },
+          "mock_return": "{ \"name\": \"ai-agent-course\", \"version\": \"1.0.0\", \"description\": \"Build an AI agent from scratch\" }"
+        },
+        "shell": {
+          "description": "Execute a shell command and return its output",
+          "parameters": {
+            "command": "string"
+          },
+          "mock_return": "command output here"
+        }
+      },
+      "config": {
+        "max_steps": 5
+      }
+    },
+    "target": {
+      "original_task": "Read package.json and tell me the project name",
+      "expected_tool_order": [
+        "read_file"
+      ],
+      "forbidden_tools": [
+        "shell"
+      ],
+      "mock_tool_results": {
+        "read_file": "{ \"name\": \"ai-agent-course\", \"version\": \"1.0.0\", \"description\": \"Build an AI agent from scratch\" }"
+      },
+      "category": "task-completion"
+    },
+    "metadata": {
+      "description": "Fresh task: User asks to read a file and extract info. Should use readFile, not shell."
+    }
+  },
+  {
+    "data": {
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm working on a Node.js project and need help understanding it"
+        },
+        {
+          "role": "assistant",
+          "content": "I'd be happy to help you understand your Node.js project! What would you like to know about it?"
+        },
+        {
+          "role": "user",
+          "content": "List the files in the src directory and then read the main entry point"
+        }
+      ],
+      "mock_tools": {
+        "list_files": {
+          "description": "List all files and directories in the specified directory path",
+          "parameters": {
+            "directory": "string"
+          },
+          "mock_return": "index.ts\nApp.tsx\ncomponents/\nutils/"
+        },
+        "read_file": {
+          "description": "Read the contents of a file at the specified path",
+          "parameters": {
+            "path": "string"
+          },
+          "mock_return": "import { App } from './App';\n\nconsole.log('Starting application...');\nApp.run();"
+        }
+      },
+      "config": {
+        "max_steps": 10
+      }
+    },
+    "target": {
+      "original_task": "List the files in the src directory and then read the main entry point",
+      "expected_tool_order": [
+        "list_files",
+        "read_file"
+      ],
+      "mock_tool_results": {
+        "list_files": "index.ts\nApp.tsx\ncomponents/\nutils/",
+        "read_file": "import { App } from './App';\n\nconsole.log('Starting application...');\nApp.run();"
+      },
+      "category": "conversation-continuation"
+    },
+    "metadata": {
+      "description": "Mid-conversation: Pre-filled history, user asks multi-step task. Should list then read."
+    }
+  },
+  {
+    "data": {
+      "prompt": "What files are in the src directory?",
+      "mock_tools": {
+        "list_files": {
+          "description": "List all files and directories in the specified directory path",
+          "parameters": {
+            "directory": "string"
+          },
+          "mock_return": "index.ts\nApp.tsx\ncomponents/"
+        },
+        "shell": {
+          "description": "Execute a shell command and return its output",
+          "parameters": {
+            "command": "string"
+          },
+          "mock_return": "index.ts  App.tsx  components/"
+        }
+      },
+      "config": {
+        "max_steps": 5
+      }
+    },
+    "target": {
+      "original_task": "What files are in the src directory?",
+      "expected_tool_order": [
+        "list_files"
+      ],
+      "forbidden_tools": [
+        "shell"
+      ],
+      "mock_tool_results": {
+        "list_files": "index.ts\nApp.tsx\ncomponents/"
+      },
+      "category": "negative"
+    },
+    "metadata": {
+      "description": "Negative: File listing task should use listFiles tool, NOT shell (ls command). Tests tool category preference."
+    }
+  }
+]
